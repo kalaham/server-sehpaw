@@ -79,34 +79,61 @@ app.put('/:id', (req, res) => {
 //Crear heuristicas
 //=========================================
 
-app.post('/',mdAutenticacion.verificarToken, (req, res) => {
+app.post('/:principio', mdAutenticacion.verificarToken, mdAutenticacion.asignarIndice, (req, res) => {
 
-    var body = req.body;    
-
+    var body = req.body;
+    var principio = req.params.principio;
+    // console.log(body);
     var heuristica = new Heuristica({
-        indice: body.indice,
-        heuristica: body.heuristica,
-        pregunta: body.pregunta,
-        nivelConformidad: body.nivelConformidad,
-        ejemplo: body.ejemplo,
-        referencia: body.referencia,
-        autor:req.usuario._id
+
+        principio: principio,
+        heuristicas:[{
+            indice: req.indice,
+            heuristica: body.heuristica,
+            pregunta: body.pregunta,
+            nivelConformidad: body.nivelConformidad,
+            ejemplo: body.ejemplo,
+            referencia: body.referencia,
+            autor: req.usuario._id
+        }]
     });
-    
-    heuristica.save((err, heuGuardada) => {
+    // console.log(heuristica);
+
+    Heuristica.findOne({principio:principio},  (err, principio) => {
         if (err) {
-            return res.status(400).json({
+            return res.status( 500 ).json({
                 ok: false,
-                mensaje: "Error al crear heuristica",
-                errors: err
+                mensaje:"Error al buscar el principio",
+                errors:err
             });
         }
-        res.status(200).json({
-            ok: true,
-            mensaje: "Heuristica creada exitisamente",
-            heuristica: heuGuardada
-        });
-    });
+        if (!principio) {
+            return res.status( 400 ).json({
+                ok: false,
+                mensaje:"El principio no se encontro en la BD",
+                errors: messsage['El principio'+principio+'no esta en la BD' ]
+            });
+        }
+        console.log(principio, heuristica.heuristicas);
+        
+        heuristica.heuristicas.push();
+      })
+
+
+    // heuristica.save((err, heuGuardada) => {
+    //     if (err) {
+    //         return res.status(400).json({
+    //             ok: false,
+    //             mensaje: "Error al crear heuristica",
+    //             errors: err
+    //         });
+    //     }
+    //     res.status(200).json({
+    //         ok: true,
+    //         mensaje: "Heuristica creada exitisamente",
+    //         heuristica: heuGuardada
+    //     });
+    // });
 });
 
 
@@ -130,7 +157,7 @@ app.delete('/:id', (req, res) => {
                 ok: false,
                 mensaje: "El ID no existe",
             });
-        }        
+        }
         res.status(200).json({
             ok: true,
             mensaje: 'la heuristica se borro exitosamente',
