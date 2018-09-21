@@ -5,7 +5,7 @@ var heuristicaSchema = new Schema({
 
     principio: { type: String, required: [true, 'No hay principio y es bnecesario'] },
     heuristicas: [{
-        indice: { type: String, required: [true, 'No hay indice y es necesario'] },
+        indice: { type: String, unique:true, required: [true, 'No hay indice y es necesario'] },
         heuristica: { type: String, required: [true, 'No hay heuristica y es necesario'] },
         pregunta: { type: String, required: [true, 'No hay pregunta y es necesario'] },
         nivelConformidad: { type: String, required: [true, 'No hay nivel conformidad y es necesario'] },

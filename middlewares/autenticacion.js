@@ -53,20 +53,72 @@ exports.buscarevaluacion = function (req, res, next) {
 }
 
 exports.asignarIndice = function (req, res, next) {
-    var indice = 'H';
-    Heuristica.count({}, (err, total) => {
+    var indice = '';
+    switch (req.params.principio) {
+        case 'perceptible':
+            indice = 'P'
+            break;
+        case 'operable':
+            indice = 'O'
+            break;
+        case 'comprencible':
+            indice = 'C'
+            break;
+        case 'robusto':
+            indice = 'R'
+            break;
+    }
+    Heuristica.findOne({ principio: req.params.principio }, (err, principioBD) => {
         if (err) {
-            res.status(500).json({
+            return res.status(500).json({
                 ok: false,
                 mensaje: "No se pudo contar las heuristicas",
                 errors: err
             });
         }
+        if (!principioBD) {
+            return res.status(400).json({
+                ok: false,
+                mensaje: "no se encontro el principio ",
+                errors: err
+            });
+        }
+        var total = principioBD.heuristicas.length
         var y = parseInt(total) + 1;
         indice = indice + y;
         req.indice = indice;
-        // console.log(indice); 
         next();
     });
 }
 
+exports.findInArray = function(req, res, next){
+    var prin =  req.params.principio
+    
+    Heuristica.findOne({principio:prin},  (err, principio ) => { 
+        if (err) {
+            return res.status( 500 ).json({
+                ok: false,
+                mensaje:"Error al buscar principio " + prin,
+                errors:err
+            });
+        }
+        if (!principio) {
+            return res.status( 400 ).json({
+                ok: false,
+                mensaje:"El principio "+prin+" no se encuentra en la BD",
+                errors:{menssage: "No se encontro el principio en la BD "}
+            });
+        }
+        const heuristicas = principio.heuristicas         
+        for (let i = 0; i < heuristicas.length; i++) {
+            let heuristica=heuristicas[i];
+            let id= heuristica._id
+            if (id==req.params.id) {
+               req.heuristica = heuristica;
+               break;             
+            }
+        }
+        next();
+     })
+
+}

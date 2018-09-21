@@ -30,110 +30,93 @@ app.get('/', (req, res, next) => {
 //ACTUALIZAR HEURISTICA
 //=========================================
 
-app.put('/:id', (req, res) => {
-
+app.put('/:principio/:id', mdAutenticacion.findInArray, (req, res) => {
+    var heuristica = req.heuristica
+    var body = req.body
+    var prin = req.params.principio;
     var id = req.params.id;
-    var body = req.body;
 
-    Heuristica.findById(id, (err, heuristica) => {
-        if (err) {
-            return res.status(500).json({
-                ok: false,
-                mensaje: "Error al actualizar la HEURISTICA",
-                errors: err
-            });
-        }
-        if (!heuristica) {
-            return res.status(400).json({
-                ok: false,
-                mensaje: "No existe una heuristica con este ID: " + id,
-                errors: { message: 'No se encontro el ID' }
-            });
-        }
+    heuristica.ejemplo = body.ejemplo
+    heuristica.heuristica = body.heuristica
+    heuristica.nivelConformidad = body.nivelConformidad
+    heuristica.pregunta = body.pregunta
+    heuristica.referencia = body.referencia
 
-        heuristica.heuristica = body.heuristica;
-        heuristica.pregunta = body.pregunta;
-        heuristica.nivelConformidad = body.nivelConformidad;
-        heuristica.ejemplo = body.ejemplo;
-        heuristica.referencia = body.referencia;
-
-        heuristica.save((err, heuActualizada) => {
+    Heuristica.findOneAndUpdate({ 'principio': prin, 'heuristicas._id': id },
+        { $set: { 'heuristicas.ejemplo': body.ejemplo } },
+        (err, prinBD) => {
             if (err) {
                 return res.status(500).json({
                     ok: false,
-                    mensaje: "Error al guardar actualizacion",
+                    mensaje: "Error al buscar principio",
                     errors: err
                 });
             }
-
+            if (!prinBD) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: "Error al buacar el principio " + prin + " en la BD",
+                    errors: { message: "el principio " + prin + " no se encuentra en la BD" }
+                });
+            }
+            if (prinBD.length == 0) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: "el ID:" + id + " no se encuentra en este principio",
+                    errors: { message: "En el principio: " + prin + " no hay ninguna heuristica con el ID: " + id }
+                });
+            }
             res.status(200).json({
                 ok: true,
-                mensaje: "Actulizado correctamente",
-                heuristica: heuActualizada
+                mensaje: "peticion realizada correctamente",
+                prinBD
             });
-        });
-    });
+        })
+
+
+
 });
 
 //=========================================
-//Crear heuristicas
+//Crear heuristicas: Se adiciona al arreglo de cada principio
 //=========================================
 
 app.post('/:principio', mdAutenticacion.verificarToken, mdAutenticacion.asignarIndice, (req, res) => {
 
     var body = req.body;
     var principio = req.params.principio;
-    // console.log(body);
-    var heuristica = new Heuristica({
+    var heuristica = {
+        indice: req.indice,
+        heuristica: body.heuristica,
+        pregunta: body.pregunta,
+        nivelConformidad: body.nivelConformidad,
+        ejemplo: body.ejemplo,
+        referencia: body.referencia,
+        autor: req.usuario._id
+    }
 
-        principio: principio,
-        heuristicas:[{
-            indice: req.indice,
-            heuristica: body.heuristica,
-            pregunta: body.pregunta,
-            nivelConformidad: body.nivelConformidad,
-            ejemplo: body.ejemplo,
-            referencia: body.referencia,
-            autor: req.usuario._id
-        }]
-    });
-    // console.log(heuristica);
-
-    Heuristica.findOne({principio:principio},  (err, principio) => {
+    Heuristica.findOneAndUpdate({ principio: principio }, { $push: { heuristicas: heuristica } }, (err, heuristicaguardada) => {
         if (err) {
-            return res.status( 500 ).json({
+            return res.status(500).json({
                 ok: false,
-                mensaje:"Error al buscar el principio",
-                errors:err
+                mensaje: "Error al guardadr heuristica",
+                errors: err
             });
         }
-        if (!principio) {
-            return res.status( 400 ).json({
+        if (!heuristicaguardada) {
+            return res.status(400).json({
                 ok: false,
-                mensaje:"El principio no se encontro en la BD",
-                errors: messsage['El principio'+principio+'no esta en la BD' ]
+                mensaje: "El principio no esta en la BD",
+                errors: { message: "El principio " + principio + "no esta en la BD " }
             });
         }
-        console.log(principio, heuristica.heuristicas);
-        
-        heuristica.heuristicas.push();
-      })
-
-
-    // heuristica.save((err, heuGuardada) => {
-    //     if (err) {
-    //         return res.status(400).json({
-    //             ok: false,
-    //             mensaje: "Error al crear heuristica",
-    //             errors: err
-    //         });
-    //     }
-    //     res.status(200).json({
-    //         ok: true,
-    //         mensaje: "Heuristica creada exitisamente",
-    //         heuristica: heuGuardada
-    //     });
-    // });
+        res.status(200).json({
+            ok: true,
+            mensaje: "Heuristica guardada EXITOSAMENTE",
+            hay: heuristicaguardada,
+            guardada: heuristica
+        });
+    });
 });
 
 
