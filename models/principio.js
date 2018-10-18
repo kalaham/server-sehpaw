@@ -2,6 +2,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var mongooseValidator = require('mongoose-unique-validator')
+// var heuristica = require('./heuristica')
 
 var principiosvalidos ={
     values:['perceptible', 'comprencible', 'operable','robusto'],
@@ -9,10 +10,8 @@ var principiosvalidos ={
 };
 
 var principioSchema = new Schema({
-    principio: { type: String, enum: principiosvalidos, required: [true, 'No hay principio y es necesario'] },
-    heuristicas: [{
-        heuristica: { type: Schema.Types.ObjectId, ref: 'Heuristicas' }
-    }]
+    principio: { type: String, enum: principiosvalidos, unique: true, required: [true, 'No hay principio y es necesario'] },
+    heuristicas: [{type: Schema.Types.ObjectId, ref:'Heuristicas'}]
 
 });
 principioSchema.plugin(mongooseValidator, {message:'{PATH} debe ser unico'});

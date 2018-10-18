@@ -56,8 +56,6 @@ app.post('/', (req, res, next) => {
             prinSaved
         });
     })
-
-
 });
 
 module.exports = app;

@@ -2,7 +2,9 @@ var express = require('express')
 
 var app = express();
 var Heuristica = require('../models/heuristica')
+var Principio = require('../models/principio')
 var mdAutenticacion = require('../middlewares/autenticacion')
+var mdsHeuristica = require('../middlewares/mdsHeuristica')
 
 //=========================================
 //Mostar todas las heuristicas que hay
@@ -30,80 +32,78 @@ app.get('/', (req, res, next) => {
 //ACTUALIZAR HEURISTICA
 //=========================================
 
-app.put('/:principio/:id', mdAutenticacion.findInArray, (req, res) => {
-    var heuristica = req.heuristica
+app.put('/:id', (req, res) => {
     var body = req.body
     var prin = req.params.principio;
     var id = req.params.id;
 
-    heuristica.ejemplo = body.ejemplo
-    heuristica.heuristica = body.heuristica
-    heuristica.nivelConformidad = body.nivelConformidad
-    heuristica.pregunta = body.pregunta
-    heuristica.referencia = body.referencia
+    console.log('entro.....................');
 
-    Heuristica.findOneAndUpdate({ 'principio': prin, 'heuristicas._id': id },
-        { $set: { 'heuristicas.ejemplo': body.ejemplo } },
-        (err, prinBD) => {
+
+    Heuristica.findById(id, (err, heuristica) => {
+        if (err) {
+            return res.status(500).json({
+                ok: false,
+                mensaje: " Error al buscar Heuristica",
+                errors: err
+            });
+        }
+
+        if (!heuristica) {
+            return res.status(400).json({
+                ok: false,
+                mensaje: "La heuristica con el id " + id + " no existe",
+                errors: { message: "no esxiste una heuristica con este ID" }
+            });
+        }
+        console.log('Lo busco y lo encontro.....');
+        
+        heuristica.ejemplo = body.ejemplo
+        heuristica.heuristica = body.heuristica
+        heuristica.nivelConformidad = body.nivelConformidad
+        heuristica.pregunta = body.pregunta
+        heuristica.referencia = body.referencia
+
+        console.log('Lo actualizo................');
+        
+
+        heuristica.save((err, heuGuardada) => {
             if (err) {
-                return res.status(500).json({
+                return res.status(400).json({
                     ok: false,
-                    mensaje: "Error al buscar principio",
+                    mensaje: "Error al actualizar heuristica",
                     errors: err
-                });
-            }
-            if (!prinBD) {
-                return res.status(400).json({
-                    ok: false,
-                    mensaje: "Error al buacar el principio " + prin + " en la BD",
-                    errors: { message: "el principio " + prin + " no se encuentra en la BD" }
-                });
-            }
-            if (prinBD.length == 0) {
-                return res.status(400).json({
-                    ok: false,
-                    mensaje: "el ID:" + id + " no se encuentra en este principio",
-                    errors: { message: "En el principio: " + prin + " no hay ninguna heuristica con el ID: " + id }
                 });
             }
             res.status(200).json({
                 ok: true,
-                mensaje: "peticion realizada correctamente",
-                prinBD
+                mensaje: "Heuristica actualizada",
+                heuGuardada
             });
-        })
-
-
-
+        });
+    });
 });
 
 //=========================================
 //Crear heuristicas: Se adiciona al arreglo de cada principio
 //=========================================
 
-app.post('/:principio', mdAutenticacion.verificarToken, mdAutenticacion.asignarIndice, (req, res) => {
+app.post('/:principio', mdAutenticacion.verificarToken, mdsHeuristica.asignarIndice, mdsHeuristica.guardarHeuristicas, (req, res) => {
 
-    var body = req.body;
     var principio = req.params.principio;
-    var heuristica = {
-        indice: req.indice,
-        heuristica: body.heuristica,
-        pregunta: body.pregunta,
-        nivelConformidad: body.nivelConformidad,
-        ejemplo: body.ejemplo,
-        referencia: body.referencia,
-        autor: req.usuario._id
-    }
+    var idHeuristica = req.h;
 
-    Heuristica.findOneAndUpdate({ principio: principio }, { $push: { heuristicas: heuristica } }, (err, heuristicaguardada) => {
+    /** despues de que el middelware crear la heuristica se actualiza  */
+
+    Principio.update({ principio: principio }, { $push: { heuristicas: [idHeuristica] } }, (err, prin) => {
         if (err) {
             return res.status(500).json({
-                ok: false,
-                mensaje: "Error al guardadr heuristica",
+                ok: true,
+                mensaje: "Error al guardar heuristica--PRINCIPIO",
                 errors: err
             });
         }
-        if (!heuristicaguardada) {
+        if (!prin) {
             return res.status(400).json({
                 ok: false,
                 mensaje: "El principio no esta en la BD",
@@ -112,19 +112,18 @@ app.post('/:principio', mdAutenticacion.verificarToken, mdAutenticacion.asignarI
         }
         res.status(200).json({
             ok: true,
-            mensaje: "Heuristica guardada EXITOSAMENTE",
-            hay: heuristicaguardada,
-            guardada: heuristica
+            mensaje: "peticion ok **se añadio la heuristica al principio**",
+            prin
         });
     });
 });
 
 
 //=========================================
-//Borrar Heuristcia
+//Borrar Heuristcia no funciona el middleware para eliminar enla Collection Principio del arreglo d ehueristicas
 //=========================================
 
-app.delete('/:id', (req, res) => {
+app.delete('/:id', mdsHeuristica.borrarHeurisPrin, (req, res) => {
     var id = req.params.id;
 
     Heuristica.findByIdAndRemove(id, (err, heuBorrada) => {
@@ -141,6 +140,7 @@ app.delete('/:id', (req, res) => {
                 mensaje: "El ID no existe",
             });
         }
+
         res.status(200).json({
             ok: true,
             mensaje: 'la heuristica se borro exitosamente',

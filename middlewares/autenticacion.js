@@ -4,8 +4,7 @@ var SECRET = require('../config/config').SECRET;
 // var Usuario = require('../models/usuario');
 var Evaluacion = require('../models/evaluacion')
 var Heuristica = require('../models/heuristica')
-
-
+var Principio = require('../models/principio')
 
 //=========================================
 //Midelawre: verificar Token
@@ -52,44 +51,7 @@ exports.buscarevaluacion = function (req, res, next) {
 
 }
 
-exports.asignarIndice = function (req, res, next) {
-    var indice = '';
-    switch (req.params.principio) {
-        case 'perceptible':
-            indice = 'P'
-            break;
-        case 'operable':
-            indice = 'O'
-            break;
-        case 'comprencible':
-            indice = 'C'
-            break;
-        case 'robusto':
-            indice = 'R'
-            break;
-    }
-    Heuristica.findOne({ principio: req.params.principio }, (err, principioBD) => {
-        if (err) {
-            return res.status(500).json({
-                ok: false,
-                mensaje: "No se pudo contar las heuristicas",
-                errors: err
-            });
-        }
-        if (!principioBD) {
-            return res.status(400).json({
-                ok: false,
-                mensaje: "no se encontro el principio ",
-                errors: err
-            });
-        }
-        var total = principioBD.heuristicas.length
-        var y = parseInt(total) + 1;
-        indice = indice + y;
-        req.indice = indice;
-        next();
-    });
-}
+
 
 exports.findInArray = function(req, res, next){
     var prin =  req.params.principio
@@ -122,3 +84,8 @@ exports.findInArray = function(req, res, next){
      })
 
 }
+
+
+
+
+

@@ -9,10 +9,9 @@ var mdAutenticacion = require('../middlewares/autenticacion')
 //=========================================
 
 
-app.get('/', (req, res, next) => {
+app.get('/', mdAutenticacion.verificarToken, (req, res, next) => {
 
     Resultado.find({}, (err, resultado) => {
-
         if (err) {
             return res.status(500).json({
                 ok: false,
@@ -31,19 +30,15 @@ app.get('/', (req, res, next) => {
 //=========================================
 //Crear resultado
 //=========================================
-app.post('/:idEvaluacion',mdAutenticacion.buscarevaluacion, (req,res) => { 
+app.post('/:idEvaluacion', mdAutenticacion.buscarevaluacion, mdAutenticacion.verificarToken,(req, res) => {
 
     var body = req.body;
+    // console.log(req.evaluacion);
 
     var resultado = new Resultado({
-        idEvaluacion: req.evaluacion._id,
-        calificaciones:[{
-            evaluador: body.idEvaluador,
-            valores:[{
-                heuristica:body.idheuristica,
-                valor:body.valor
-            }]
-        }]
+        evaluacion: req.evaluacion._id,
+        evaluador: req.usuario._id,
+        valores: body.valor
     });
 
     resultado.save((err, resulGuardado) => {
@@ -57,9 +52,9 @@ app.post('/:idEvaluacion',mdAutenticacion.buscarevaluacion, (req,res) => {
         res.status(200).json({
             ok: true,
             mensaje: "resultado guardado exitisamente",
-            resultado: resulGuardado
+            resulGuardado
         });
     });
- });
+});
 
 module.exports = app;

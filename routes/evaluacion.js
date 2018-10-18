@@ -30,19 +30,19 @@ app.get('/', (req, res, next) => {
 //crear evaluacion
 //=========================================
 
-app.post('/',   (req, res) => {
+app.post('/', mdAutenticacion.verificarToken, (req, res) => {
 
     body = req.body;
 
     var evaluacion = new Evaluacion({
-        coordinador: body.coordinador,
+        coordinador: req.usuario._id,
         fecha: body.fecha,
         nombreSitio: body.nombreSitio,
         urlSitio: body.urlSitio,
-        heuristicas: body.heuristicas,
-        evaluadores: body.evaluadores,
+        heuristicas: body.heuristica,
+        evaluadores: body.evaluadores
     });
-
+    
     evaluacion.save((err, evaluGuardada) => {
         if (err) {
             return res.status(400).json({
@@ -51,7 +51,7 @@ app.post('/',   (req, res) => {
                 errors: err
             });
         }
-        res.status(200).json({
+         res.status(200).json({
             ok: true,
             mensaje: "La evaluacion se guardo exitosamente",
             evaluacion: evaluGuardada
@@ -59,37 +59,35 @@ app.post('/',   (req, res) => {
     });
 });
 
+
 //=========================================
 //Eliminar evaluacion
 //=========================================
 
-app.delete('/:id',  (req, res ) => {
+app.delete('/:id', (req, res) => {
 
-    var id= req.params.id;
+    var id = req.params.id;
 
-    Evaluacion.findByIdAndRemove(id,  (err, evaBorrada ) => { 
+    Evaluacion.findByIdAndRemove(id, (err, evaBorrada) => {
         if (err) {
-            return res.status( 500 ).json({
+            return res.status(500).json({
                 ok: false,
-                mensaje:"Error al borrar Evaluacion",
-                errors:err
+                mensaje: "Error al borrar Evaluacion",
+                errors: err
             });
         }
         if (!evaBorrada) {
-            return res.status( 400 ).json({
+            return res.status(400).json({
                 ok: false,
-                mensaje:"El ID nocoincide con ninguna evaluacion",
-                errors:err
+                mensaje: "El ID nocoincide con ninguna evaluacion",
+                errors: err
             });
         }
-        res.status( 200 ).json({
+        res.status(200).json({
             ok: true,
-            evaluacion: evaBorrada            
+            evaluacion: evaBorrada
         });
-     });
-
-
-
-  });
+    });
+});
 
 module.exports = app;
