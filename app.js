@@ -11,6 +11,7 @@ var evaluacionRoutes = require('./routes/evaluacion')
 var heuriticaRoutes = require('./routes/heuristica')
 var resultadoRoutes = require('./routes/resultado')
 var principioRoutes = require('./routes/principio')
+var uploadRoutes = require('./routes/upload')
 
 //Inicializar variables
 var app = express();
@@ -30,6 +31,7 @@ mongoose.connect('mongodb://localhost:27017/sehpawdb',  (err, res ) => {
 // Rutas
 app.use('/usuario', usuarioRoutes)
 app.use('/evaluacion', evaluacionRoutes)
+app.use('/upload', uploadRoutes)
 app.use('/heuristica', heuriticaRoutes)
 app.use('/principio', principioRoutes)
 app.use('/resultado', resultadoRoutes)
