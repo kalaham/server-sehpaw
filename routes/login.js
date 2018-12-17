@@ -46,7 +46,7 @@ app.post("/", (req, res) => {
 
         // Crear Token
         usuarioEnBD.password = ':)';
-        var token = jwt.sign({usuario:usuarioEnBD}, SECRET , {expiresIn: 86400});
+        var token = jwt.sign({usuario:usuarioEnBD}, SECRET /**, {expiresIn: false} */);
 
 
         res.status(200).json({

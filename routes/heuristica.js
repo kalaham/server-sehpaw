@@ -10,7 +10,7 @@ var mdsHeuristica = require('../middlewares/mdsHeuristica')
 //Mostar todas las heuristicas que hay
 //=========================================
 
-app.get('/', (req, res, next) => {
+app.get('/', mdAutenticacion.verificarToken, (req, res, next) => {
 
     Heuristica.find({}, (err, heuristicas) => {
 
@@ -28,11 +28,34 @@ app.get('/', (req, res, next) => {
         });
     });
 });
+
+//=========================================
+//Buscar heuristica por ID
+//=========================================
+
+app.get('/:id', mdAutenticacion.verificarToken,  (req, res, next ) => { 
+    var id = req.params.id;
+    Heuristica.findById(id,  (err, heuristica ) => { 
+        if (err) {
+            return res.status(500).json({
+                ok: false,
+                mensaje: "error en el servidor - heuristica/id",
+                errors: err
+            });
+        }
+        res.status(200).json({
+            ok: true,
+            mensaje: "peticion realizada correctamente - heuristica/id",
+            heuristica
+        });
+     });
+ });
+
 //=========================================
 //ACTUALIZAR HEURISTICA
 //=========================================
 
-app.put('/:id', (req, res) => {
+app.put('/:id',mdAutenticacion.verificarToken, mdAutenticacion.validarAdmin, (req, res) => {
     var body = req.body
     var prin = req.params.principio;
     var id = req.params.id;
@@ -88,12 +111,18 @@ app.put('/:id', (req, res) => {
 //Crear heuristicas: Se adiciona al arreglo de cada principio
 //=========================================
 
-app.post('/:principio', mdAutenticacion.verificarToken, mdsHeuristica.asignarIndice, mdsHeuristica.guardarHeuristicas, (req, res) => {
+app.post('/:principio', 
+        mdAutenticacion.verificarToken,
+        mdAutenticacion.validarAdmin, 
+        mdsHeuristica.asignarIndice, 
+        mdsHeuristica.guardarHeuristicas, (req, res) => {
 
     var principio = req.params.principio;
     var idHeuristica = req.h;
 
-    /** despues de que el middelware crear la heuristica se actualiza  */
+    /** despues de que el middelware crear la heuristica, 
+     * se actualiza la tabla Principio con el id 
+     * que se devuelve desde guardarHeuristica  */
 
     Principio.update({ principio: principio }, { $push: { heuristicas: [idHeuristica] } }, (err, prin) => {
         if (err) {
@@ -123,7 +152,7 @@ app.post('/:principio', mdAutenticacion.verificarToken, mdsHeuristica.asignarInd
 //Borrar Heuristcia no funciona el middleware para eliminar enla Collection Principio del arreglo d ehueristicas
 //=========================================
 
-app.delete('/:id', mdsHeuristica.borrarHeurisPrin, (req, res) => {
+app.delete('/:id', mdsHeuristica.borrarHeurisPrin, mdAutenticacion.validarAdmin, (req, res) => {
     var id = req.params.id;
 
     Heuristica.findByIdAndRemove(id, (err, heuBorrada) => {

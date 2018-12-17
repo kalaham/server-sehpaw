@@ -1,14 +1,17 @@
 var express = require('express')
 var Principio = require('../models/principio')
+var mdAutenticacion = require('../middlewares/autenticacion')
 
 var app = express();
 
 //=========================================
 //Extraer todos los principios 
 //=========================================
-app.get('/', (req, res, next) => {
+app.get('/', mdAutenticacion.verificarToken, (req, res, next) => {
 
-    Principio.find({}, (err, principios) => {
+    Principio.find({})
+    .populate('heuristicas')
+    .exec((err, principios) => {
         if (err) {
             return res.status(500).json({
                 ok: faslse,
@@ -20,7 +23,7 @@ app.get('/', (req, res, next) => {
             return res.status(400).json({
                 ok: false,
                 mensaje: "No hay principios",
-                errors: { message: 'No s eencontro principios' }
+                errors: { message: 'No se encontro principios' }
             });
         }
         res.status(200).json({

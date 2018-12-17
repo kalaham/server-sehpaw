@@ -9,7 +9,7 @@ var Usuario = require('../models/usuario');
 //Extraer todos los usuarois
 //=========================================
 
-app.get('/', (req, res, next) => {
+app.get('/', mdAutenticacion.verificarToken, mdAutenticacion.validarAdmin, (req, res, next) => {
 
     Usuario.find({}, 'nombre email img role')
         .exec(
@@ -29,11 +29,60 @@ app.get('/', (req, res, next) => {
 
 });
 
+
+app.get('/evaluadores', mdAutenticacion.verificarToken, (req, res, next) => {
+
+    Usuario.find({ role: 'EVALUADOR_ROLE' }, 'nombre email img role')
+        .exec((err, evaluadores) => {
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: "Error cargando usuario BD",
+                    errors: err
+                });
+            }
+            res.status(200).json({
+                ok: true,
+                evaluadores
+            });
+        });
+
+});
+
+//=========================================
+//get de un solo usuario mediante ID
+//=========================================
+
+app.get('/:id', mdAutenticacion.verificarToken, (req, res, next) => {
+    var id = req.params.id;
+    Usuario.findById(id, 'nombre')
+        .exec((err, usuario) => {
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: "Internal Server error",
+                    errors: err
+                });
+            }
+            if (!usuario) {
+                return res.status( 401 ).json({
+                    ok: false,
+                    mensaje:"No se encontro usuario con este id" + id,                    
+                });     
+            }
+            res.status(200).json({
+                ok: true,
+                usuario
+            });
+        });
+
+});
+
 //=========================================
 //aCTUALIZAR USUARIO
 //=========================================
 
-app.put('/:id', mdAutenticacion.verificarToken, (req, res) => {
+app.put('/:id', mdAutenticacion.verificarToken, mdAutenticacion.validarAdmin, (req, res) => {
 
     var id = req.params.id;
     var body = req.body;
@@ -83,7 +132,7 @@ app.put('/:id', mdAutenticacion.verificarToken, (req, res) => {
 //Crear un usuario
 //=========================================
 
-app.post('/',mdAutenticacion.verificarToken, (req, res) => {
+app.post('/', mdAutenticacion.verificarToken, mdAutenticacion.validarAdmin, (req, res) => {
 
     body = req.body;
 
@@ -115,7 +164,7 @@ app.post('/',mdAutenticacion.verificarToken, (req, res) => {
 //Boorar un usuario
 //=========================================
 
-app.delete('/:id', mdAutenticacion.verificarToken, (req, res) => {
+app.delete('/:id', mdAutenticacion.verificarToken, mdAutenticacion.validarAdmin, (req, res) => {
     var id = req.params.id;
 
     Usuario.findByIdAndRemove(id, (err, usuBorrado) => {

@@ -15,7 +15,7 @@ app.use(fileUpload());
 app.put('/', mdAutenticacion.verificarToken, (req, res, next) => {
 
     var id = req.usuario._id;
-    var role = req.role;
+    var role = req.usuario.role;
     var rolesPermitidos = ['ADMIN_ROLE', 'COORDINADOR_ROLE', 'EVALUADOR_ROLE'];
 
 

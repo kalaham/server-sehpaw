@@ -51,7 +51,8 @@ exports.guardarHeuristicas= function(req, res, next){
         nivelConformidad: body.nivelConformidad,
         ejemplo: body.ejemplo,
         referencia: body.referencia,
-        autor: req.usuario._id
+        autor: req.usuario._id,
+        principio:req.params.principio
     });
     // var x = Principio.heuristicas;
     heuristica.save((err, heuSaved) => {
