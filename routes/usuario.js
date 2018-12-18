@@ -131,8 +131,9 @@ app.put('/:id', mdAutenticacion.verificarToken, mdAutenticacion.validarAdmin, (r
 //=========================================
 //Crear un usuario
 //=========================================
+// mdAutenticacion.verificarToken, mdAutenticacion.validarAdmin,
 
-app.post('/', mdAutenticacion.verificarToken, mdAutenticacion.validarAdmin, (req, res) => {
+app.post('/',  (req, res) => {
 
     body = req.body;
 
