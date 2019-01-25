@@ -24,14 +24,16 @@ exports.verificarToken = function (req, res, next) {
 }
 
 exports.validarAdmin = function (req, res, next) {
-    
-    if (req.usuario.role==='ADMIN_ROLE') {        
+
+    if (req.usuario.role === 'ADMIN_ROLE') {
         next();
         return;
     }
     // res.status(403).send('No eres admin! hijo!');
-    res.status( 403 ).json({
+    res.status(403).json({
         ok: false,
-        mensaje:"No eres admin! hijo!"        
-    });    
+        mensaje: "No eres admin! hijo!"
+    });
 }
+
+

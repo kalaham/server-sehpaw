@@ -7,8 +7,11 @@ var evaluacionSchema = new Schema({
     nombreSitio: {type: String, required:[true,'No hay nombre del sitio y es necesario']},
     urlSitio:{type: String, required:[true, 'No hay URL del sitio y es necesario']},
     heuristicas: [ {type: Schema.Types.ObjectId, ref:'Heuristicas'}],
-    evaluadores:[{type: Schema.Types.ObjectId, ref:'Usuarios'}],
-    estado: {type: Boolean, default: false}
+    estado: {type: Boolean, default: false},
+    evaluadores:[{
+        evaluador: {type: Schema.Types.ObjectId, ref:'Usuarios'},
+        valores:[ {type:String} ]
+    }]
 },{collection: 'evaluaciones'});
 
 module.exports = mongoose.model('Evaluaciones', evaluacionSchema)
